@@ -1,0 +1,50 @@
+{
+  "debts": [
+    {
+      "id": "1",
+      "name": "Store Credit Card",
+      "type": "CREDIT_CARD",
+      "balance": 1247,
+      "minimumPayment": 45,
+      "interestRate": 24.99,
+      "lastUpdated": "2024-01-01T00:00:00.000Z",
+      "institution": "Store Bank"
+    },
+    {
+      "id": "2",
+      "name": "RBC Credit Card",
+      "type": "CREDIT_CARD",
+      "balance": 4890,
+      "minimumPayment": 125,
+      "interestRate": 19.99,
+      "lastUpdated": "2024-01-01T00:00:00.000Z",
+      "institution": "RBC"
+    },
+    {
+      "id": "3",
+      "name": "TD Auto Loan",
+      "type": "AUTO_LOAN",
+      "balance": 18500,
+      "minimumPayment": 320,
+      "interestRate": 6.5,
+      "lastUpdated": "2024-01-01T00:00:00.000Z",
+      "institution": "TD Bank"
+    },
+    {
+      "id": "4",
+      "name": "Personal Line of Credit",
+      "type": "LINE_OF_CREDIT",
+      "balance": 3200,
+      "minimumPayment": 85,
+      "interestRate": 8.25,
+      "lastUpdated": "2024-01-01T00:00:00.000Z",
+      "institution": "National Bank"
+    }
+  ],
+  "statements": [],
+  "settings": {
+    "extraPayment": 100,
+    "strategy": "SNOWBALL",
+    "currency": "CAD"
+  }
+}

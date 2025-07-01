@@ -1,0 +1,1067 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Dashboard snapshot 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#f3f4f6",
+      "flex": 1,
+    }
+  }
+>
+  <RCTScrollView
+    showsVerticalScrollIndicator={false}
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          {
+            "backgroundColor": "white",
+            "borderBottomColor": "#e5e7eb",
+            "borderBottomWidth": 1,
+            "marginBottom": 16,
+            "padding": 24,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#1f2937",
+              "fontSize": 28,
+              "fontWeight": "700",
+              "marginBottom": 4,
+            }
+          }
+        >
+          💳 DebtFree Pro
+        </Text>
+        <Text
+          style={
+            {
+              "color": "#6b7280",
+              "fontSize": 16,
+            }
+          }
+        >
+          Smart debt payoff using the proven snowball method
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "white",
+            "borderRadius": 16,
+            "elevation": 5,
+            "margin": 16,
+            "marginTop": 0,
+            "padding": 20,
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#1f2937",
+              "fontSize": 20,
+              "fontWeight": "600",
+              "marginBottom": 16,
+            }
+          }
+        >
+          🎯 Your Progress
+        </Text>
+        <View
+          style={
+            {
+              "marginBottom": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "marginBottom": 8,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 16,
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Overall Progress
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 14,
+                }
+              }
+            >
+              23
+              % Complete
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#e5e7eb",
+                "borderRadius": 4,
+                "height": 8,
+                "overflow": "hidden",
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#10b981",
+                    "borderRadius": 4,
+                    "height": "100%",
+                  },
+                  {
+                    "width": "23%",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "marginBottom": 12,
+              "marginHorizontal": -4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "rgba(255, 255, 255, 0.9)",
+                "borderColor": "rgba(255, 255, 255, 0.3)",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "marginHorizontal": 4,
+                "padding": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "fontSize": 24,
+                  "marginBottom": 8,
+                }
+              }
+            >
+              💰
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 20,
+                  "fontWeight": "700",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              $27,837.00
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 12,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Total Debt
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "rgba(255, 255, 255, 0.9)",
+                "borderColor": "rgba(255, 255, 255, 0.3)",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "marginHorizontal": 4,
+                "padding": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "fontSize": 24,
+                  "marginBottom": 8,
+                }
+              }
+            >
+              📅
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 20,
+                  "fontWeight": "700",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              $575.00
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 12,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Monthly Payments
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "marginBottom": 12,
+              "marginHorizontal": -4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "rgba(255, 255, 255, 0.9)",
+                "borderColor": "rgba(255, 255, 255, 0.3)",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "marginHorizontal": 4,
+                "padding": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "fontSize": 24,
+                  "marginBottom": 8,
+                }
+              }
+            >
+              🎯
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 20,
+                  "fontWeight": "700",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              3.2 years
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 12,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Debt-Free Date
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "rgba(255, 255, 255, 0.9)",
+                "borderColor": "rgba(255, 255, 255, 0.3)",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "marginHorizontal": 4,
+                "padding": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "fontSize": 24,
+                  "marginBottom": 8,
+                }
+              }
+            >
+              💾
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 20,
+                  "fontWeight": "700",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              $3,420
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 12,
+                  "textAlign": "center",
+                }
+              }
+            >
+              Interest Saved
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "white",
+            "borderRadius": 16,
+            "elevation": 5,
+            "margin": 16,
+            "marginTop": 0,
+            "padding": 20,
+            "shadowColor": "#000",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#1f2937",
+              "fontSize": 20,
+              "fontWeight": "600",
+              "marginBottom": 16,
+            }
+          }
+        >
+          💳 Your Debts
+        </Text>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "rgba(239, 68, 68, 0.05)",
+              "borderColor": "#ef4444",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "elevation": 3,
+              "marginBottom": 12,
+              "opacity": 1,
+              "padding": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.1,
+              "shadowRadius": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "marginBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "fontSize": 20,
+                    "marginRight": 8,
+                  }
+                }
+              >
+                💳
+              </Text>
+              <Text
+                style={
+                  {
+                    "color": "#1f2937",
+                    "flex": 1,
+                    "fontSize": 16,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                Store Credit Card
+              </Text>
+              <View
+                style={
+                  {
+                    "backgroundColor": "#ef4444",
+                    "borderRadius": 12,
+                    "marginLeft": 8,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "white",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                    }
+                  }
+                >
+                  FOCUS
+                </Text>
+              </View>
+            </View>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                }
+              }
+            >
+              $1,247.00
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 14,
+                }
+              }
+            >
+              24.99
+              % APR • Min: 
+              $45.00
+              /month
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#9ca3af",
+                  "fontSize": 12,
+                  "marginTop": 2,
+                }
+              }
+            >
+              Store Bank
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "white",
+              "borderColor": "#e5e7eb",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "elevation": 3,
+              "marginBottom": 12,
+              "opacity": 1,
+              "padding": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.1,
+              "shadowRadius": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "marginBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "fontSize": 20,
+                    "marginRight": 8,
+                  }
+                }
+              >
+                💳
+              </Text>
+              <Text
+                style={
+                  {
+                    "color": "#1f2937",
+                    "flex": 1,
+                    "fontSize": 16,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                RBC Credit Card
+              </Text>
+            </View>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                }
+              }
+            >
+              $4,890.00
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 14,
+                }
+              }
+            >
+              19.99
+              % APR • Min: 
+              $125.00
+              /month
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#9ca3af",
+                  "fontSize": 12,
+                  "marginTop": 2,
+                }
+              }
+            >
+              RBC
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "white",
+              "borderColor": "#e5e7eb",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "elevation": 3,
+              "marginBottom": 12,
+              "opacity": 1,
+              "padding": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.1,
+              "shadowRadius": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "marginBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "fontSize": 20,
+                    "marginRight": 8,
+                  }
+                }
+              >
+                🚗
+              </Text>
+              <Text
+                style={
+                  {
+                    "color": "#1f2937",
+                    "flex": 1,
+                    "fontSize": 16,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                TD Auto Loan
+              </Text>
+            </View>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                }
+              }
+            >
+              $18,500.00
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 14,
+                }
+              }
+            >
+              6.50
+              % APR • Min: 
+              $320.00
+              /month
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#9ca3af",
+                  "fontSize": 12,
+                  "marginTop": 2,
+                }
+              }
+            >
+              TD Bank
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "white",
+              "borderColor": "#e5e7eb",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "elevation": 3,
+              "marginBottom": 12,
+              "opacity": 1,
+              "padding": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.1,
+              "shadowRadius": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "marginBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "fontSize": 20,
+                    "marginRight": 8,
+                  }
+                }
+              >
+                📈
+              </Text>
+              <Text
+                style={
+                  {
+                    "color": "#1f2937",
+                    "flex": 1,
+                    "fontSize": 16,
+                    "fontWeight": "600",
+                  }
+                }
+              >
+                Personal Line of Credit
+              </Text>
+            </View>
+            <Text
+              style={
+                {
+                  "color": "#1f2937",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                }
+              }
+            >
+              $3,200.00
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#6b7280",
+                  "fontSize": 14,
+                }
+              }
+            >
+              8.25
+              % APR • Min: 
+              $85.00
+              /month
+            </Text>
+            <Text
+              style={
+                {
+                  "color": "#9ca3af",
+                  "fontSize": 12,
+                  "marginTop": 2,
+                }
+              }
+            >
+              National Bank
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "white",
+              "borderRadius": 16,
+              "elevation": 5,
+              "margin": 16,
+              "marginTop": 0,
+              "padding": 20,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.1,
+              "shadowRadius": 8,
+            },
+            {
+              "backgroundColor": "rgba(16, 185, 129, 0.05)",
+              "borderColor": "rgba(16, 185, 129, 0.2)",
+              "borderWidth": 1,
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#047857",
+              "fontSize": 18,
+              "fontWeight": "600",
+              "marginBottom": 16,
+            }
+          }
+        >
+          🚀 Next Steps (February 2025)
+        </Text>
+        <View
+          style={
+            {
+              "marginLeft": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#065f46",
+                "fontSize": 14,
+                "lineHeight": 20,
+                "marginBottom": 8,
+              }
+            }
+          >
+            1. 
+            <Text
+              style={
+                {
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Pay $200 toward Store Credit Card
+            </Text>
+             (minimum $45 + extra $155)
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#065f46",
+                "fontSize": 14,
+                "lineHeight": 20,
+                "marginBottom": 8,
+              }
+            }
+          >
+            2. Pay minimums on all other debts ($530 total)
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#065f46",
+                "fontSize": 14,
+                "lineHeight": 20,
+                "marginBottom": 8,
+              }
+            }
+          >
+            3. Expected payoff: Store Credit Card in 6 months
+          </Text>
+          <Text
+            style={
+              {
+                "color": "#065f46",
+                "fontSize": 14,
+                "lineHeight": 20,
+                "marginBottom": 8,
+              }
+            }
+          >
+            4. After payoff, apply that $200 to RBC Credit Card
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
+`;
