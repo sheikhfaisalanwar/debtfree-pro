@@ -1,4 +1,5 @@
 import { UploadedDocument } from './DocumentUploadService';
+import { PDFParsingService } from './PDFParsingService';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -42,6 +43,18 @@ export class DocumentValidationService {
       errors: [],
       warnings: []
     };
+
+    // Handle null/undefined document
+    if (!document) {
+      result.errors.push('Document is required');
+      return result;
+    }
+
+    // Validate required fields exist
+    if (!document.fileType) {
+      result.errors.push('Document file type is required');
+      return result;
+    }
 
     try {
       if (document.fileType === 'csv') {
@@ -103,8 +116,6 @@ export class DocumentValidationService {
   }
 
   private static async validatePDF(document: UploadedDocument, result: ValidationResult): Promise<ValidationResult> {
-    result.warnings.push('PDF validation is basic - only checking file existence and size');
-    
     if (document.fileSize === 0) {
       result.errors.push('PDF file appears to be empty');
       return result;
@@ -115,8 +126,70 @@ export class DocumentValidationService {
       return result;
     }
 
-    result.isValid = true;
-    result.warnings.push('PDF content parsing not yet implemented');
+    try {
+      // Validate document filePath exists
+      if (!document.filePath) {
+        result.errors.push('PDF document file path is missing');
+        return result;
+      }
+
+      // Extract text from PDF
+      const pdfData = await PDFParsingService.extractTextFromPDF(document.filePath);
+      
+      if (!pdfData.text || pdfData.text.trim().length === 0) {
+        result.errors.push('PDF appears to be empty or contains no readable text');
+        return result;
+      }
+
+      // Check if PDF requires manual entry
+      if (pdfData.text.startsWith('PDF_REQUIRES_MANUAL_ENTRY:')) {
+        result.warnings.push('PDF text extraction is not available. You can still upload the PDF for record-keeping, but statement data will need to be entered manually.');
+        result.isValid = true;
+        return result;
+      }
+
+      // Parse credit card statement data
+      const statementData = PDFParsingService.parseCreditCardStatement(pdfData.text);
+      
+      // Validate the extracted data
+      const dataValidation = PDFParsingService.validateStatementData(statementData);
+      
+      // Check if we found meaningful credit card statement data
+      const hasMinimumData = (
+        statementData.previousBalance !== undefined ||
+        statementData.purchases !== undefined ||
+        statementData.payments !== undefined ||
+        statementData.interest !== undefined
+      );
+
+      if (!dataValidation.isValid) {
+        // If validation failed only because no data was found, treat as warning
+        if (!hasMinimumData && dataValidation.errors.some(err => err.includes('No recognizable credit card statement data'))) {
+          result.warnings.push('No recognizable credit card statement data found. This may not be a credit card statement.');
+        } else {
+          // Other validation errors are real errors
+          result.errors.push(...dataValidation.errors);
+          return result;
+        }
+      }
+
+      if (hasMinimumData) {
+        result.detectedType = 'credit_card';
+        
+        // Add helpful summary to warnings
+        const summary = PDFParsingService.getDataSummary(statementData);
+        result.warnings.push(`Extracted data: ${summary}`);
+        
+        // Store parsed data for later use
+        (result as any).extractedData = statementData;
+      }
+
+      result.isValid = true;
+      
+    } catch (error) {
+      result.errors.push(`Failed to process PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return result;
+    }
     
     return result;
   }

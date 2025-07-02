@@ -2,6 +2,7 @@ import { DocumentUploadService, UploadedDocument } from './DocumentUploadService
 import { DocumentValidationService, ValidationResult } from './DocumentValidationService';
 import { Statement, StatementTransaction, StatementPayment } from '../types/Statement';
 import { DataStoreService } from './DataStoreService';
+import { CreditCardStatementData } from './PDFParsingService';
 
 export interface ProcessedDocument extends UploadedDocument {
   validationResult?: ValidationResult;
@@ -75,6 +76,20 @@ export class DocumentManagerService {
 
       if (document.fileType === 'csv' && content) {
         const statement = await this.extractStatementFromCSV(document, content, validationResult);
+        processedDoc.extractedData = statement;
+        processedDoc.processed = true;
+
+        await DataStoreService.addStatement(statement);
+
+        return {
+          success: true,
+          document: processedDoc,
+          statement
+        };
+      }
+
+      if (document.fileType === 'pdf') {
+        const statement = await this.extractStatementFromPDF(document, validationResult);
         processedDoc.extractedData = statement;
         processedDoc.processed = true;
 
@@ -181,6 +196,102 @@ export class DocumentManagerService {
     return statement;
   }
 
+  private static async extractStatementFromPDF(
+    document: UploadedDocument,
+    validationResult: ValidationResult
+  ): Promise<Statement> {
+    // Get the extracted data from validation result
+    const extractedData: CreditCardStatementData = (validationResult as any).extractedData || {};
+    
+    // Check if this is a manual entry PDF (no text extraction available)
+    const isManualEntry = validationResult.warnings?.some(warning => 
+      warning.includes('PDF text extraction is not available')
+    );
+
+    // Check if meaningful data was actually extracted
+    const hasExtractedData = !isManualEntry && (
+      extractedData.previousBalance !== undefined ||
+      extractedData.purchases !== undefined ||
+      extractedData.payments !== undefined ||
+      extractedData.interest !== undefined ||
+      extractedData.minimumPayment !== undefined
+    );
+
+    // Create a statement from the extracted PDF data
+    const statement: Statement = {
+      id: `stmt_${document.id}`,
+      debtId: document.debtId || 'unknown',
+      statementDate: extractedData.statementDate || new Date(),
+      balance: isManualEntry ? 0 : this.calculateCurrentBalance(extractedData),
+      minimumPayment: extractedData.minimumPayment || 0,
+      dueDate: extractedData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      interestCharged: extractedData.interest || 0,
+      payments: isManualEntry ? [] : this.createPaymentsFromPDF(extractedData),
+      purchases: isManualEntry ? [] : this.createPurchasesFromPDF(extractedData),
+      fileName: document.fileName,
+      imported: new Date(),
+      creditLimit: extractedData.creditLimit,
+      availableCredit: extractedData.availableCredit,
+      interestRate: extractedData.interestRate
+    };
+
+    // Store whether meaningful data was extracted for later use
+    (statement as any).hasExtractedData = hasExtractedData;
+
+    return statement;
+  }
+
+  private static calculateCurrentBalance(data: CreditCardStatementData): number {
+    // Calculate current balance: Previous Balance + Purchases + Interest - Payments
+    const previousBalance = data.previousBalance || 0;
+    const purchases = data.purchases || 0;
+    const interest = data.interest || 0;
+    const payments = data.payments || 0;
+
+    return previousBalance + purchases + interest - payments;
+  }
+
+  private static createPaymentsFromPDF(data: CreditCardStatementData): StatementPayment[] {
+    const payments: StatementPayment[] = [];
+    
+    // Add payment if found in PDF
+    if (data.payments && data.payments > 0) {
+      payments.push({
+        date: data.statementDate || new Date(),
+        amount: data.payments,
+        description: 'Payment'
+      });
+    }
+
+    return payments;
+  }
+
+  private static createPurchasesFromPDF(data: CreditCardStatementData): StatementTransaction[] {
+    const transactions: StatementTransaction[] = [];
+    
+    // Add purchases as a single transaction if found in PDF
+    if (data.purchases && data.purchases > 0) {
+      transactions.push({
+        date: data.statementDate || new Date(),
+        amount: data.purchases,
+        description: 'Purchases',
+        category: 'general'
+      });
+    }
+
+    // Add interest as a separate transaction if found
+    if (data.interest && data.interest > 0) {
+      transactions.push({
+        date: data.statementDate || new Date(),
+        amount: data.interest,
+        description: 'Interest Charged',
+        category: 'fees'
+      });
+    }
+
+    return transactions;
+  }
+
   private static parseTransactionRow(row: {[key: string]: string}, headers: string[]): StatementTransaction | null {
     try {
       const dateField = this.findFieldByPatterns(row, ['date', 'transaction_date', 'posted_date']);
@@ -214,7 +325,7 @@ export class DocumentManagerService {
         description: row[descriptionField],
         category: this.categorizeTransaction(row[descriptionField])
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   }

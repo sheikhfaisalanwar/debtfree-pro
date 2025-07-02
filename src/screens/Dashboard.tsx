@@ -9,6 +9,8 @@ import {
 import { DebtCard } from '../components/DebtCard';
 import { ProgressBar } from '../components/ProgressBar';
 import { StatCard } from '../components/StatCard';
+import { DocumentUpload } from '../components/DocumentUpload';
+import { EditDebtModal } from '../components/EditDebtModal';
 import { Debt } from '../types/Debt';
 import { PayoffStrategy } from '../types/Strategy';
 import { DebtService } from '../services/DebtService';
@@ -19,6 +21,8 @@ export const Dashboard: React.FC = () => {
   const [strategy, setStrategy] = useState<PayoffStrategy | null>(null);
   const [extraPayment, setExtraPayment] = useState<number>(100);
   const [loading, setLoading] = useState<boolean>(true);
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
 
   useEffect(() => {
     loadData();
@@ -30,18 +34,43 @@ export const Dashboard: React.FC = () => {
       const loadedDebts = await DataStoreService.getDebts();
       const settings = await DataStoreService.getSettings();
       
-      setDebts(loadedDebts);
       setExtraPayment(settings.extraPayment);
       
       if (loadedDebts.length > 0) {
-        const snowballStrategy = DebtService.calculateSnowballStrategy(loadedDebts, settings.extraPayment);
+        // Sort debts by balance (ascending) for snowball method
+        const sortedDebts = [...loadedDebts].sort((a, b) => a.balance - b.balance);
+        setDebts(sortedDebts);
+        
+        const snowballStrategy = DebtService.calculateSnowballStrategy(sortedDebts, settings.extraPayment);
         setStrategy(snowballStrategy);
+      } else {
+        setDebts(loadedDebts);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUploadSuccess = () => {
+    loadData();
+  };
+
+  const handleDebtCardPress = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setShowEditModal(true);
+  };
+
+  const handleDebtUpdated = async () => {
+    await loadData();
+    setShowEditModal(false);
+    setSelectedDebt(null);
+  };
+
+  const handleModalClose = () => {
+    setShowEditModal(false);
+    setSelectedDebt(null);
   };
 
   const formatCurrency = (amount: number): string => {
@@ -105,6 +134,9 @@ export const Dashboard: React.FC = () => {
           </View>
         </View>
 
+        {/* Document Upload Section */}
+        <DocumentUpload onUploadSuccess={handleUploadSuccess} />
+
         {/* Debts Section */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>💳 Your Debts</Text>
@@ -113,6 +145,7 @@ export const Dashboard: React.FC = () => {
               key={debt.id}
               debt={debt}
               isPriority={index === 0} // First debt in snowball method
+              onPress={() => handleDebtCardPress(debt)}
             />
           ))}
         </View>
@@ -145,6 +178,15 @@ export const Dashboard: React.FC = () => {
           </View>
         )}
       </ScrollView>
+      
+      {selectedDebt && (
+        <EditDebtModal
+          visible={showEditModal}
+          debt={selectedDebt}
+          onSave={handleDebtUpdated}
+          onCancel={handleModalClose}
+        />
+      )}
     </SafeAreaView>
   );
 };

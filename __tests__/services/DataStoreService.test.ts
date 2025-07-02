@@ -117,7 +117,7 @@ describe('DataStoreService', () => {
   });
 
   describe('addDebt', () => {
-    it('should add new debt and save', async () => {
+    it('should add new debt with CreateDebtParams and save', async () => {
       mockRNFS.exists.mockResolvedValue(true);
       mockRNFS.readFile.mockResolvedValue(JSON.stringify(mockDataStore));
       mockRNFS.writeFile.mockResolvedValue();
@@ -135,10 +135,105 @@ describe('DataStoreService', () => {
       expect(newDebt.id).toBeDefined();
       expect(mockRNFS.writeFile).toHaveBeenCalled();
     });
+
+    it('should add new debt with full Debt object and preserve ID', async () => {
+      mockRNFS.exists.mockResolvedValue(true);
+      mockRNFS.readFile.mockResolvedValue(JSON.stringify(mockDataStore));
+      mockRNFS.writeFile.mockResolvedValue();
+
+      const fullDebt = {
+        id: 'custom_debt_id',
+        name: 'Custom Debt',
+        type: DebtType.AUTO_LOAN,
+        balance: 15000,
+        minimumPayment: 350,
+        interestRate: 5.99,
+        lastUpdated: new Date(),
+        institution: 'Auto Finance',
+        accountNumber: '1234',
+        dueDate: 15
+      };
+
+      const newDebt = await DataStoreService.addDebt(fullDebt);
+
+      expect(newDebt.id).toBe('custom_debt_id');
+      expect(newDebt.name).toBe('Custom Debt');
+      expect(newDebt.accountNumber).toBe('1234');
+      expect(newDebt.dueDate).toBe(15);
+      expect(mockRNFS.writeFile).toHaveBeenCalled();
+    });
+
+    it('should generate unique IDs for CreateDebtParams', async () => {
+      mockRNFS.exists.mockResolvedValue(true);
+      mockRNFS.readFile.mockResolvedValue(JSON.stringify(mockDataStore));
+      mockRNFS.writeFile.mockResolvedValue();
+
+      const debtParams = {
+        name: 'Test Debt',
+        type: DebtType.CREDIT_CARD,
+        balance: 1000,
+        minimumPayment: 50,
+        interestRate: 15,
+        institution: 'Bank'
+      };
+
+      const debt1 = await DataStoreService.addDebt(debtParams);
+      const debt2 = await DataStoreService.addDebt(debtParams);
+
+      expect(debt1.id).not.toBe(debt2.id);
+      expect(debt1.id).toBeDefined();
+      expect(debt2.id).toBeDefined();
+    });
   });
 
   describe('updateDebt', () => {
-    it('should update existing debt', async () => {
+    it('should update existing debt with all fields', async () => {
+      const debtWithAllFields = {
+        ...mockDataStore,
+        debts: [{
+          id: '1',
+          name: 'Original Card',
+          type: DebtType.CREDIT_CARD,
+          balance: 1000,
+          minimumPayment: 50,
+          interestRate: 18.99,
+          lastUpdated: new Date('2024-01-01'),
+          institution: 'Original Bank',
+          accountNumber: '0000',
+          dueDate: 1
+        }]
+      };
+
+      mockRNFS.exists.mockResolvedValue(true);
+      mockRNFS.readFile.mockResolvedValue(JSON.stringify(debtWithAllFields));
+      mockRNFS.writeFile.mockResolvedValue();
+
+      const updatedDebt = await DataStoreService.updateDebt({
+        id: '1',
+        name: 'Updated Card',
+        type: DebtType.AUTO_LOAN,
+        balance: 900,
+        minimumPayment: 45,
+        interestRate: 12.5,
+        institution: 'New Bank',
+        accountNumber: '9999',
+        dueDate: 31
+      });
+
+      expect(updatedDebt).not.toBeNull();
+      expect(updatedDebt?.name).toBe('Updated Card');
+      expect(updatedDebt?.type).toBe(DebtType.AUTO_LOAN);
+      expect(updatedDebt?.balance).toBe(900);
+      expect(updatedDebt?.minimumPayment).toBe(45);
+      expect(updatedDebt?.interestRate).toBe(12.5);
+      expect(updatedDebt?.institution).toBe('New Bank');
+      expect(updatedDebt?.accountNumber).toBe('9999');
+      expect(updatedDebt?.dueDate).toBe(31);
+      expect(updatedDebt?.lastUpdated.getTime()).toBeGreaterThan(new Date('2024-01-01').getTime());
+      expect(mockRNFS.writeFile).toHaveBeenCalled();
+    });
+
+    it('should update debt with partial fields', async () => {
       mockRNFS.exists.mockResolvedValue(true);
       mockRNFS.readFile.mockResolvedValue(JSON.stringify(mockDataStore));
       mockRNFS.writeFile.mockResolvedValue();
@@ -152,7 +247,43 @@ describe('DataStoreService', () => {
       expect(updatedDebt).not.toBeNull();
       expect(updatedDebt?.balance).toBe(900);
       expect(updatedDebt?.minimumPayment).toBe(45);
+      expect(updatedDebt?.name).toBe('Test Credit Card'); // Unchanged
+      expect(updatedDebt?.type).toBe(DebtType.CREDIT_CARD); // Unchanged
       expect(mockRNFS.writeFile).toHaveBeenCalled();
+    });
+
+    it('should preserve undefined optional fields', async () => {
+      const debtWithOptionals = {
+        ...mockDataStore,
+        debts: [{
+          id: '1',
+          name: 'Test Card',
+          type: DebtType.CREDIT_CARD,
+          balance: 1000,
+          minimumPayment: 50,
+          interestRate: 18.99,
+          lastUpdated: new Date('2024-01-01'),
+          institution: 'Test Bank',
+          accountNumber: '1234',
+          dueDate: 15
+        }]
+      };
+
+      mockRNFS.exists.mockResolvedValue(true);
+      mockRNFS.readFile.mockResolvedValue(JSON.stringify(debtWithOptionals));
+      mockRNFS.writeFile.mockResolvedValue();
+
+      const updatedDebt = await DataStoreService.updateDebt({
+        id: '1',
+        balance: 900,
+        accountNumber: undefined,
+        dueDate: undefined
+      });
+
+      expect(updatedDebt).not.toBeNull();
+      expect(updatedDebt?.balance).toBe(900);
+      expect(updatedDebt?.accountNumber).toBe('1234'); // Should remain unchanged
+      expect(updatedDebt?.dueDate).toBe(15); // Should remain unchanged
     });
 
     it('should return null for non-existent debt', async () => {

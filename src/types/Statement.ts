@@ -10,6 +10,9 @@ export interface Statement {
   purchases: StatementTransaction[];
   fileName?: string;
   imported: Date;
+  creditLimit?: number;
+  availableCredit?: number;
+  interestRate?: number;
 }
 
 export interface StatementPayment {

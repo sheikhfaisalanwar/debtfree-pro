@@ -24,10 +24,13 @@ export interface CreateDebtParams {
 export interface UpdateDebtParams {
   id: string;
   name?: string;
+  type?: DebtType;
   balance?: number;
   minimumPayment?: number;
   interestRate?: number;
   institution?: string;
+  accountNumber?: string;
+  dueDate?: number;
 }
 
 export class DataStoreService {
@@ -83,19 +86,34 @@ export class DataStoreService {
     }
   }
 
-  static async addDebt(params: CreateDebtParams): Promise<Debt> {
+  static async addDebt(params: CreateDebtParams): Promise<Debt>;
+  static async addDebt(debt: Debt): Promise<Debt>;
+  static async addDebt(input: CreateDebtParams | Debt): Promise<Debt> {
     const dataStore = await this.loadData();
     
-    const newDebt: Debt = {
-      id: this.generateId(),
-      name: params.name,
-      type: params.type,
-      balance: params.balance,
-      minimumPayment: params.minimumPayment,
-      interestRate: params.interestRate,
-      lastUpdated: new Date(),
-      institution: params.institution
-    };
+    let newDebt: Debt;
+    
+    // Check if input is a full Debt object or CreateDebtParams
+    if ('id' in input && input.id) {
+      // Full Debt object provided
+      newDebt = {
+        ...input,
+        lastUpdated: new Date()
+      };
+    } else {
+      // CreateDebtParams provided
+      const params = input as CreateDebtParams;
+      newDebt = {
+        id: this.generateId(),
+        name: params.name,
+        type: params.type,
+        balance: params.balance,
+        minimumPayment: params.minimumPayment,
+        interestRate: params.interestRate,
+        lastUpdated: new Date(),
+        institution: params.institution
+      };
+    }
     
     dataStore.debts.push(newDebt);
     await this.saveData(dataStore);
@@ -115,10 +133,13 @@ export class DataStoreService {
     const updatedDebt: Debt = {
       ...existingDebt,
       name: params.name ?? existingDebt.name,
+      type: params.type ?? existingDebt.type,
       balance: params.balance ?? existingDebt.balance,
       minimumPayment: params.minimumPayment ?? existingDebt.minimumPayment,
       interestRate: params.interestRate ?? existingDebt.interestRate,
       institution: params.institution ?? existingDebt.institution,
+      accountNumber: params.accountNumber ?? existingDebt.accountNumber,
+      dueDate: params.dueDate ?? existingDebt.dueDate,
       lastUpdated: new Date()
     };
     
@@ -202,7 +223,9 @@ export class DataStoreService {
       minimumPayment: debtData.minimumPayment,
       interestRate: debtData.interestRate,
       lastUpdated: new Date(debtData.lastUpdated),
-      institution: debtData.institution
+      institution: debtData.institution,
+      accountNumber: debtData.accountNumber,
+      dueDate: debtData.dueDate
     };
   }
 
@@ -215,7 +238,9 @@ export class DataStoreService {
       minimumPayment: debt.minimumPayment,
       interestRate: debt.interestRate,
       lastUpdated: debt.lastUpdated.toISOString(),
-      institution: debt.institution
+      institution: debt.institution,
+      accountNumber: debt.accountNumber,
+      dueDate: debt.dueDate
     };
   }
 

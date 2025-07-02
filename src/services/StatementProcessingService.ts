@@ -20,6 +20,22 @@ export class StatementProcessingService {
     error?: string;
   }> {
     try {
+      // Check if debtId is provided and debt exists
+      if (!debtId || debtId === 'unknown') {
+        return {
+          updated: false,
+          error: 'No debt ID provided. Please create a debt first or link the statement to an existing debt.'
+        };
+      }
+
+      const existingDebt = await DataStoreService.getDebt(debtId);
+      if (!existingDebt) {
+        return {
+          updated: false,
+          error: `Debt with ID ${debtId} not found. Please create the debt first.`
+        };
+      }
+
       const result = await DocumentManagerService.uploadAndProcessDocument(debtId);
       
       if (!result.success || !result.statement) {
@@ -37,6 +53,67 @@ export class StatementProcessingService {
 
       return {
         statement: result.statement,
+        analysis,
+        updated: analysis.shouldUpdateDebt
+      };
+    } catch (error) {
+      return {
+        updated: false,
+        error: `Statement processing failed: ${error}`
+      };
+    }
+  }
+
+  static async processExistingStatement(statementId: string, debtId: string): Promise<{
+    statement?: Statement;
+    analysis?: StatementAnalysis;
+    updated: boolean;
+    error?: string;
+  }> {
+    try {
+      // Check if debtId is provided and debt exists
+      if (!debtId || debtId === 'unknown') {
+        return {
+          updated: false,
+          error: 'No debt ID provided. Please create a debt first.'
+        };
+      }
+
+      const existingDebt = await DataStoreService.getDebt(debtId);
+      if (!existingDebt) {
+        return {
+          updated: false,
+          error: `Debt with ID ${debtId} not found. Please create the debt first.`
+        };
+      }
+
+      // Get the existing statement
+      const statements = await DataStoreService.getStatements();
+      const statement = statements.find(s => s.id === statementId);
+      
+      if (!statement) {
+        return {
+          updated: false,
+          error: `Statement with ID ${statementId} not found.`
+        };
+      }
+
+      // Update the statement's debtId
+      const updatedStatement: Statement = {
+        ...statement,
+        debtId
+      };
+
+      await DataStoreService.addStatement(updatedStatement);
+
+      const analysis = await this.analyzeStatement(updatedStatement, debtId);
+      
+      if (analysis.shouldUpdateDebt) {
+        await this.updateDebtFromStatement(debtId, analysis);
+      }
+
+      return {
+        statement: updatedStatement,
         analysis,
         updated: analysis.shouldUpdateDebt
       };

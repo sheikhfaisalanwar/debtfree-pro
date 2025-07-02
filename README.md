@@ -13,16 +13,23 @@ DebtFreePro is a React Native application that helps users track and eliminate t
 - Dynamic dashboard with real-time debt summaries
 - JSON-based data persistence for all debt and statement data
 - Support for multiple debt types (Credit Card, Auto Loan, Line of Credit, etc.)
+- **Manual debt entry with comprehensive validation**
+- **Complete debt editing functionality for consecutive monthly updates**
+- **Debt type conversions and account modifications**
 
 **Document Upload & Processing:**
 - CSV and PDF document upload from device storage
 - Automatic statement parsing and validation
+- **PDF manual entry fallback with graceful degradation**
+- **Smart debt ID management and temporary state handling**
 - Transaction categorization and analysis
 - Statement-to-debt linking with confidence scoring
 - File validation with comprehensive error handling
 
 **Data Architecture:**
 - Local JSON data store with full CRUD operations
+- **Enhanced DataStoreService with overloaded debt creation methods**
+- **Extended debt interface with account number and due date fields**
 - Statement history tracking per debt account
 - Automatic debt balance updates from uploaded statements
 - Settings management (extra payments, strategy type, currency)
@@ -30,6 +37,9 @@ DebtFreePro is a React Native application that helps users track and eliminate t
 
 **User Interface:**
 - Modern React Native UI with card-based design
+- **ManualDebtEntryModal for creating debts from PDF uploads**
+- **EditDebtModal for updating existing debt information**
+- **Previous value hints and validation feedback**
 - Progress tracking and payoff projections
 - Loading states and error handling
 - Dynamic next steps based on current debt strategy
@@ -42,18 +52,22 @@ DebtFreePro/
 │   ├── components/          # Reusable UI components
 │   │   ├── DebtCard.tsx     # Individual debt display
 │   │   ├── ProgressBar.tsx  # Progress visualization
-│   │   └── StatCard.tsx     # Summary statistics
+│   │   ├── StatCard.tsx     # Summary statistics
+│   │   ├── DocumentUpload.tsx        # PDF/CSV upload with smart routing
+│   │   ├── ManualDebtEntryModal.tsx  # Create debt from PDF upload
+│   │   └── EditDebtModal.tsx         # Edit existing debt details
 │   ├── data/
 │   │   └── debts.json       # Initial data store template
 │   ├── screens/
 │   │   └── Dashboard.tsx    # Main application screen
 │   ├── services/            # Business logic layer
-│   │   ├── DataStoreService.ts           # JSON data persistence
+│   │   ├── DataStoreService.ts           # JSON data persistence (enhanced)
 │   │   ├── DebtService.ts                # Debt calculations (snowball)
 │   │   ├── DocumentUploadService.ts      # File upload handling
 │   │   ├── DocumentValidationService.ts  # CSV/PDF validation
-│   │   ├── DocumentManagerService.ts     # Upload orchestration
-│   │   └── StatementProcessingService.ts # Statement analysis
+│   │   ├── DocumentManagerService.ts     # Upload orchestration (enhanced)
+│   │   ├── StatementProcessingService.ts # Statement analysis (enhanced)
+│   │   └── PDFParsingService.ts          # PDF processing (manual entry)
 │   └── types/               # TypeScript interfaces
 │       ├── Debt.ts          # Debt data structures
 │       ├── Statement.ts     # Statement/transaction types
@@ -70,24 +84,38 @@ DebtFreePro/
    ```
    User selects file → DocumentUploadService validates → 
    DocumentValidationService parses → DocumentManagerService processes → 
-   DataStoreService persists → Dashboard updates
+   [IF PDF + no data] → ManualDebtEntryModal → DataStoreService persists → 
+   [IF data extracted] → Automatic processing → Dashboard updates
    ```
 
-2. **Data Persistence:**
+2. **Manual Debt Entry Flow:**
+   ```
+   PDF Upload → No extractable data → ManualDebtEntryModal → 
+   User enters debt details → DataStoreService.addDebt() → 
+   Temporary debt ID state → StatementProcessingService links → 
+   Dashboard updates
+   ```
+
+3. **Monthly Debt Update Flow:**
+   ```
+   User opens EditDebtModal → Updates balance/payments → 
+   DataStoreService.updateDebt() → Preserves statement relationships → 
+   Dashboard reflects changes
+   ```
+
+4. **Data Persistence:**
    ```
    JSON Store (debts.json) ↔ DataStoreService ↔ Components
-   ```
-
-3. **Statement Processing:**
-   ```
-   CSV Upload → Transaction Parsing → Debt Matching → 
-   Balance Updates → Strategy Recalculation
+   Enhanced with dual interface support (CreateDebtParams | Debt)
    ```
 
 ### 🧪 Testing Coverage
 
-- **Unit Tests:** 91+ tests covering all service layers
-- **Integration Tests:** Real CSV data processing validation
+- **Unit Tests:** 49+ tests covering all service layers (including enhanced DataStoreService)
+- **Integration Tests:** 30+ tests covering complete workflows
+  - ManualDebtEntry.integration.test.ts (12 tests)
+  - DebtEditing.integration.test.ts (11 tests) 
+  - PDFProcessing.integration.test.ts (7 tests)
 - **Mock Infrastructure:** Complete React Native module mocking
 - **Test Fixtures:** Sample credit card, bank, and line of credit statements
 
@@ -121,7 +149,7 @@ npm run lint               # Code quality checks
 
 ### 📁 Key Data Structures
 
-**Debt Interface:**
+**Enhanced Debt Interface:**
 ```typescript
 interface Debt {
   id: string;
@@ -131,7 +159,9 @@ interface Debt {
   minimumPayment: number;
   interestRate: number;
   lastUpdated: Date;
-  institution: string;
+  institution?: string;
+  accountNumber?: string;    // NEW: Last 4 digits
+  dueDate?: number;         // NEW: Day of month (1-31)
 }
 ```
 
@@ -169,7 +199,7 @@ interface DataStore {
 
 **Supported Formats:**
 - CSV files with multiple header formats
-- PDF files (basic validation, parsing not yet implemented)
+- PDF files with manual entry fallback (automatic extraction gracefully degrades)
 
 **CSV Header Support:**
 - `Date, Amount, Description`
@@ -191,6 +221,12 @@ interface DataStore {
 - Progress visualization with percentage complete
 - Dynamic next steps based on snowball strategy
 - Responsive design with proper loading states
+
+**Modal Components:**
+- ManualDebtEntryModal: Complete debt creation from PDF uploads
+- EditDebtModal: Monthly balance updates and debt management
+- Previous value hints for easy comparison during edits
+- Comprehensive validation with user-friendly error messages
 
 **Styling:**
 - Modern card-based design with shadows
@@ -255,11 +291,26 @@ interface DataStore {
 
 ## 🔄 Next Development Priorities
 
-### High Priority
-1. **PDF Statement Parsing:** Implement OCR or PDF text extraction
-2. **Statement Review UI:** Screen to review and edit parsed transactions
-3. **Manual Debt Entry:** UI for adding/editing debts manually
-4. **Settings Screen:** Configure extra payments and strategy preferences
+### ⚠️ Domain Model Refactoring (High Priority)
+The current models have become overloaded and need refactoring for better separation of concerns:
+
+**Current Issues:**
+- `Debt` interface handles both account info and financial state
+- `Statement` interface mixes document metadata with transaction data  
+- `DataStoreService` manages too many responsibilities
+- Mixed concerns between document processing and debt management
+
+**Planned Refactoring:**
+1. **Separate Account from Debt:** Create `DebtAccount` (institution, account#, type) vs `DebtBalance` (amount, rate, payment)
+2. **Extract Document Model:** Separate `Document` entity from `Statement` financial data
+3. **Split Service Responsibilities:** Separate account management from transaction processing
+4. **Normalize Data Relationships:** Better foreign key relationships between entities
+
+### High Priority (After Refactoring)
+1. **Settings Screen:** Configure extra payments and strategy preferences
+2. **Statement Review UI:** Screen to review and edit parsed transactions  
+3. **Enhanced PDF Processing:** Implement OCR or PDF text extraction
+4. **Data Migration:** Handle schema changes gracefully
 
 ### Medium Priority
 1. **Data Visualization:** Charts for debt progress and trends
@@ -287,7 +338,8 @@ Test files mirror the source structure and include realistic sample data for tho
 ## 📝 Development Notes
 
 ### Current Limitations
-- PDF parsing not implemented (validation only)
+- PDF parsing requires manual entry (automatic extraction not implemented)
+- Domain models are overloaded and need refactoring
 - No cloud sync or backup functionality
 - Single user support only
 - Limited to snowball method (avalanche planned)
