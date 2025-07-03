@@ -1,0 +1,142 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Real Data Loading Test should correctly map account types for debt cards 1`] = `
+{
+  "allTypesCompatible": true,
+  "debtTypeMappings": [
+    {
+      "canBeUsedByDebtCard": true,
+      "id": "1",
+      "name": "Store Credit Card",
+      "type": "CREDIT_CARD",
+      "typeIsString": true,
+      "typeLength": 11,
+    },
+    {
+      "canBeUsedByDebtCard": true,
+      "id": "2",
+      "name": "RBC Credit Card",
+      "type": "CREDIT_CARD",
+      "typeIsString": true,
+      "typeLength": 11,
+    },
+    {
+      "canBeUsedByDebtCard": true,
+      "id": "3",
+      "name": "TD Auto Loan",
+      "type": "AUTO_LOAN",
+      "typeIsString": true,
+      "typeLength": 9,
+    },
+    {
+      "canBeUsedByDebtCard": true,
+      "id": "4",
+      "name": "Personal Line of Credit",
+      "type": "LINE_OF_CREDIT",
+      "typeIsString": true,
+      "typeLength": 14,
+    },
+  ],
+}
+`;
+
+exports[`Real Data Loading Test should handle empty data gracefully 1`] = `
+{
+  "emptyDataHandling": {
+    "debtsCount": 0,
+    "extraPayment": 100,
+    "settingsLoaded": true,
+    "strategy": "SNOWBALL",
+  },
+}
+`;
+
+exports[`Real Data Loading Test should load real debts.json data correctly 1`] = `
+{
+  "loadedDebts": {
+    "allDebtsValid": true,
+    "count": 4,
+    "firstDebt": {
+      "balance": 1247,
+      "hasValidBalance": true,
+      "hasValidInterestRate": true,
+      "hasValidName": true,
+      "id": "1",
+      "name": "Store Credit Card",
+      "type": "CREDIT_CARD",
+    },
+  },
+  "realDataStructure": {
+    "accountsCount": 4,
+    "balancesCount": 4,
+    "firstAccountType": "CREDIT_CARD",
+    "firstBalanceAmount": 1247,
+    "hasAccounts": true,
+    "hasBalances": true,
+  },
+}
+`;
+
+exports[`Real Data Loading Test should verify debt card props compatibility 1`] = `
+{
+  "allDebtsCompatible": true,
+  "debtCardCompatibility": [
+    {
+      "allPropsValid": true,
+      "hasRequiredProps": {
+        "balance": true,
+        "id": true,
+        "institution": true,
+        "interestRate": true,
+        "lastUpdated": true,
+        "minimumPayment": true,
+        "name": true,
+        "type": true,
+      },
+      "id": "1",
+    },
+    {
+      "allPropsValid": true,
+      "hasRequiredProps": {
+        "balance": true,
+        "id": true,
+        "institution": true,
+        "interestRate": true,
+        "lastUpdated": true,
+        "minimumPayment": true,
+        "name": true,
+        "type": true,
+      },
+      "id": "2",
+    },
+    {
+      "allPropsValid": true,
+      "hasRequiredProps": {
+        "balance": true,
+        "id": true,
+        "institution": true,
+        "interestRate": true,
+        "lastUpdated": true,
+        "minimumPayment": true,
+        "name": true,
+        "type": true,
+      },
+      "id": "3",
+    },
+    {
+      "allPropsValid": true,
+      "hasRequiredProps": {
+        "balance": true,
+        "id": true,
+        "institution": true,
+        "interestRate": true,
+        "lastUpdated": true,
+        "minimumPayment": true,
+        "name": true,
+        "type": true,
+      },
+      "id": "4",
+    },
+  ],
+}
+`;

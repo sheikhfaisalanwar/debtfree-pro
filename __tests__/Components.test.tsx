@@ -8,22 +8,36 @@ import { DebtCard } from '../src/components/DebtCard';
 import { ProgressBar } from '../src/components/ProgressBar';
 import { StatCard } from '../src/components/StatCard';
 import { Dashboard } from '../src/screens/Dashboard';
-import { DebtType } from '../src/types/Debt';
+import { DebtAccountType } from '../src/types/DebtAccount';
 
 test('DebtCard renders correctly', async () => {
-  const mockDebt = {
+  const mockAccount = {
     id: '1',
     name: 'Test Credit Card',
-    type: DebtType.CREDIT_CARD,
+    type: DebtAccountType.CREDIT_CARD,
+    institution: 'Test Bank',
+    createdDate: new Date(),
+    lastUpdated: new Date(),
+  };
+
+  const mockBalance = {
+    id: 'b1',
+    accountId: '1',
     balance: 1000,
     minimumPayment: 50,
     interestRate: 19.99,
+    balanceDate: new Date(),
     lastUpdated: new Date(),
-    institution: 'Test Bank',
   };
 
   await ReactTestRenderer.act(() => {
-    ReactTestRenderer.create(<DebtCard debt={mockDebt} isPriority={true} />);
+    ReactTestRenderer.create(
+      <DebtCard 
+        account={mockAccount} 
+        balance={mockBalance} 
+        isPriority={true} 
+      />
+    );
   });
 });
 

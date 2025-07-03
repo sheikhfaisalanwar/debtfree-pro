@@ -16,6 +16,8 @@ module.exports = {
     '<rootDir>/node_modules/',
     '<rootDir>/android/',
     '<rootDir>/ios/',
+    '<rootDir>/__tests__/__mocks__/',
+    '<rootDir>/__tests__/setup.js',
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',

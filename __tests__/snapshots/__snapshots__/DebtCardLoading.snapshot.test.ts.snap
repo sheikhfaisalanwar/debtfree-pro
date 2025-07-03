@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Debt Card Loading Snapshot Tests DataStoreService.getAllAccountsWithBalances() should correctly combine accounts with their current balances 1`] = `
+{
+  "accountsCount": 1,
+  "firstAccountBalance": {
+    "accountId": "1",
+    "accountName": "Test Card",
+    "balanceAmount": 900,
+    "balanceDate": "2024-01-15T00:00:00.000Z",
+    "balanceId": "bal_2",
+    "isCurrentBalance": "Should be the most recent balance (2024-01-15)",
+  },
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests DataStoreService.getDebts() should handle corrupted data file 1`] = `
+{
+  "debtsCount": 0,
+  "fallbackBehavior": "Should return empty array on parse error",
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests DataStoreService.getDebts() should handle file system errors 1`] = `
+{
+  "debtsCount": 0,
+  "errorHandling": "Should return empty array on file system error",
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests DataStoreService.getDebts() should handle missing balance data gracefully 1`] = `
+{
+  "accountsWithoutBalances": "Should return empty array when no balances exist",
+  "debtsCount": 0,
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests DataStoreService.getDebts() should handle missing data file 1`] = `
+{
+  "debtsCount": 0,
+  "missingFileBehavior": "Should initialize and return empty array",
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests DataStoreService.getDebts() should load debts correctly from current data format 1`] = `
+{
+  "debtsCount": 2,
+  "firstDebt": {
+    "balance": 1247,
+    "id": "1",
+    "institution": "Store Bank",
+    "interestRate": 24.99,
+    "lastUpdatedType": "object",
+    "lastUpdatedValid": true,
+    "minimumPayment": 45,
+    "name": "Store Credit Card",
+    "type": "CREDIT_CARD",
+  },
+  "secondDebt": {
+    "balance": 4890,
+    "id": "2",
+    "institution": "RBC",
+    "interestRate": 19.99,
+    "lastUpdatedType": "object",
+    "lastUpdatedValid": true,
+    "minimumPayment": 125,
+    "name": "RBC Credit Card",
+    "type": "CREDIT_CARD",
+  },
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests Initialize behavior should not reinitialize if file exists 1`] = `
+{
+  "existsCallCount": 1,
+  "shouldNotWriteWhenFileExists": true,
+  "writeFileCallCount": 0,
+}
+`;
+
+exports[`Debt Card Loading Snapshot Tests Initialize behavior should properly initialize data store on first run 1`] = `
+{
+  "existsCallCount": 1,
+  "writeFileCallCount": 1,
+  "writeFileCalledWith": {
+    "contentType": "string",
+    "encoding": "utf8",
+    "path": "/mock/documents/debts.json",
+  },
+}
+`;

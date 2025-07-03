@@ -1,39 +1,69 @@
-import { DataStoreService, DataStore } from '../../src/services/DataStoreService';
-import { DebtType } from '../../src/types/Debt';
+import { DataStoreService } from '../../src/services/DataStoreService';
+import { DataStoreV2 } from '../../src/types/DataStore';
+import { DebtAccountType } from '../../src/types/DebtAccount';
 import RNFS from 'react-native-fs';
+
+// Legacy compatibility - define DebtType for tests
+const DebtType = DebtAccountType;
 
 jest.mock('react-native-fs');
 
 const mockRNFS = RNFS as jest.Mocked<typeof RNFS>;
 
 describe('DataStoreService', () => {
-  const mockDataStore: DataStore = {
-    debts: [
+  const mockDataStore: DataStoreV2 = {
+    version: '2.0.0',
+    accounts: [
       {
         id: '1',
         name: 'Test Credit Card',
-        type: DebtType.CREDIT_CARD,
+        type: DebtAccountType.CREDIT_CARD,
+        institution: 'Test Bank',
+        createdDate: new Date('2024-01-01'),
+        lastUpdated: new Date('2024-01-01')
+      }
+    ],
+    balances: [
+      {
+        id: 'bal_1',
+        accountId: '1',
         balance: 1000,
         minimumPayment: 50,
         interestRate: 18.99,
-        lastUpdated: new Date('2024-01-01'),
-        institution: 'Test Bank'
+        balanceDate: new Date('2024-01-01'),
+        lastUpdated: new Date('2024-01-01')
       }
     ],
+    documents: [],
     statements: [],
     settings: {
       extraPayment: 100,
-      strategy: 'SNOWBALL',
-      currency: 'CAD'
+      strategy: 'SNOWBALL' as any,
+      currency: 'CAD',
+      dateFormat: 'YYYY-MM-DD',
+      notifications: {
+        enabled: true,
+        dueDateReminders: true,
+        paymentReminders: true,
+        reminderDays: 3
+      }
+    },
+    metadata: {
+      createdDate: new Date('2024-01-01'),
+      lastUpdated: new Date('2024-01-01'),
+      dataVersion: '2.0.0',
+      totalMigrations: 0
     }
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockRNFS.DocumentDirectoryPath = '/mock/documents';
+    // Reset initialization state for each test
+    (DataStoreService as any)._initialized = false;
   });
 
-  describe('initializeDataStore', () => {
+  describe('initialize', () => {
     it('should create data file if it does not exist', async () => {
       mockRNFS.exists.mockResolvedValue(false);
       mockRNFS.writeFile.mockResolvedValue();
@@ -56,33 +86,18 @@ describe('DataStoreService', () => {
 
   describe('loadData', () => {
     it('should load and parse data correctly', async () => {
-      const mockFileContent = JSON.stringify({
-        debts: [{
-          id: '1',
-          name: 'Test Card',
-          type: 'CREDIT_CARD',
-          balance: 1000,
-          minimumPayment: 50,
-          interestRate: 18.99,
-          lastUpdated: '2024-01-01T00:00:00.000Z',
-          institution: 'Test Bank'
-        }],
-        statements: [],
-        settings: {
-          extraPayment: 100,
-          strategy: 'SNOWBALL',
-          currency: 'CAD'
-        }
-      });
+      const mockFileContent = JSON.stringify(mockDataStore);
 
       mockRNFS.exists.mockResolvedValue(true);
       mockRNFS.readFile.mockResolvedValue(mockFileContent);
 
       const result = await DataStoreService.loadData();
 
-      expect(result.debts).toHaveLength(1);
-      expect(result.debts[0].name).toBe('Test Card');
-      expect(result.debts[0].lastUpdated).toBeInstanceOf(Date);
+      expect(result.accounts).toHaveLength(1);
+      expect(result.accounts[0].name).toBe('Test Credit Card');
+      expect(result.accounts[0].lastUpdated).toBeInstanceOf(Date);
+      expect(result.balances).toHaveLength(1);
+      expect(result.balances[0].balance).toBe(1000);
     });
 
     it('should return empty store on error', async () => {
@@ -91,7 +106,8 @@ describe('DataStoreService', () => {
 
       const result = await DataStoreService.loadData();
 
-      expect(result.debts).toHaveLength(0);
+      expect(result.accounts).toHaveLength(0);
+      expect(result.balances).toHaveLength(0);
       expect(result.statements).toHaveLength(0);
     });
   });
@@ -116,7 +132,7 @@ describe('DataStoreService', () => {
     });
   });
 
-  describe('addDebt', () => {
+  describe('addDebt (legacy compatibility)', () => {
     it('should add new debt with CreateDebtParams and save', async () => {
       mockRNFS.exists.mockResolvedValue(true);
       mockRNFS.readFile.mockResolvedValue(JSON.stringify(mockDataStore));
@@ -124,7 +140,7 @@ describe('DataStoreService', () => {
 
       const newDebt = await DataStoreService.addDebt({
         name: 'New Card',
-        type: DebtType.CREDIT_CARD,
+        type: DebtAccountType.CREDIT_CARD,
         balance: 2000,
         minimumPayment: 75,
         interestRate: 22.99,
@@ -190,23 +206,36 @@ describe('DataStoreService', () => {
     it('should update existing debt with all fields', async () => {
       const debtWithAllFields = {
         ...mockDataStore,
-        debts: [{
+        accounts: [{
           id: '1',
           name: 'Original Card',
           type: DebtType.CREDIT_CARD,
+          institution: 'Original Bank',
+          accountNumber: '0000',
+          dueDate: 1,
+          createdDate: new Date('2024-01-01'),
+          lastUpdated: new Date('2024-01-01')
+        }],
+        balances: [{
+          id: 'bal_1',
+          accountId: '1',
           balance: 1000,
           minimumPayment: 50,
           interestRate: 18.99,
-          lastUpdated: new Date('2024-01-01'),
-          institution: 'Original Bank',
-          accountNumber: '0000',
-          dueDate: 1
+          balanceDate: new Date('2024-01-01'),
+          lastUpdated: new Date('2024-01-01')
         }]
       };
 
+      // Track the data that gets written
+      let currentData = debtWithAllFields;
+      
       mockRNFS.exists.mockResolvedValue(true);
-      mockRNFS.readFile.mockResolvedValue(JSON.stringify(debtWithAllFields));
-      mockRNFS.writeFile.mockResolvedValue();
+      mockRNFS.readFile.mockImplementation(() => Promise.resolve(JSON.stringify(currentData)));
+      mockRNFS.writeFile.mockImplementation((path, content) => {
+        currentData = JSON.parse(content);
+        return Promise.resolve();
+      });
 
       const updatedDebt = await DataStoreService.updateDebt({
         id: '1',
@@ -234,9 +263,15 @@ describe('DataStoreService', () => {
     });
 
     it('should update debt with partial fields', async () => {
+      // Track the data that gets written
+      let currentData = mockDataStore;
+      
       mockRNFS.exists.mockResolvedValue(true);
-      mockRNFS.readFile.mockResolvedValue(JSON.stringify(mockDataStore));
-      mockRNFS.writeFile.mockResolvedValue();
+      mockRNFS.readFile.mockImplementation(() => Promise.resolve(JSON.stringify(currentData)));
+      mockRNFS.writeFile.mockImplementation((path, content) => {
+        currentData = JSON.parse(content);
+        return Promise.resolve();
+      });
 
       const updatedDebt = await DataStoreService.updateDebt({
         id: '1',
@@ -255,23 +290,36 @@ describe('DataStoreService', () => {
     it('should preserve undefined optional fields', async () => {
       const debtWithOptionals = {
         ...mockDataStore,
-        debts: [{
+        accounts: [{
           id: '1',
           name: 'Test Card',
           type: DebtType.CREDIT_CARD,
+          institution: 'Test Bank',
+          accountNumber: '1234',
+          dueDate: 15,
+          createdDate: new Date('2024-01-01'),
+          lastUpdated: new Date('2024-01-01')
+        }],
+        balances: [{
+          id: 'bal_1',
+          accountId: '1',
           balance: 1000,
           minimumPayment: 50,
           interestRate: 18.99,
-          lastUpdated: new Date('2024-01-01'),
-          institution: 'Test Bank',
-          accountNumber: '1234',
-          dueDate: 15
+          balanceDate: new Date('2024-01-01'),
+          lastUpdated: new Date('2024-01-01')
         }]
       };
 
+      // Track the data that gets written
+      let currentData = debtWithOptionals;
+      
       mockRNFS.exists.mockResolvedValue(true);
-      mockRNFS.readFile.mockResolvedValue(JSON.stringify(debtWithOptionals));
-      mockRNFS.writeFile.mockResolvedValue();
+      mockRNFS.readFile.mockImplementation(() => Promise.resolve(JSON.stringify(currentData)));
+      mockRNFS.writeFile.mockImplementation((path, content) => {
+        currentData = JSON.parse(content);
+        return Promise.resolve();
+      });
 
       const updatedDebt = await DataStoreService.updateDebt({
         id: '1',
@@ -305,16 +353,16 @@ describe('DataStoreService', () => {
         ...mockDataStore,
         statements: [{
           id: 'stmt1',
-          debtId: '1',
+          accountId: '1',
           statementDate: new Date(),
           balance: 1000,
           minimumPayment: 50,
           dueDate: new Date(),
           interestCharged: 15,
+          transactions: [],
           payments: [],
-          purchases: [],
-          fileName: 'test.csv',
-          imported: new Date()
+          importedDate: new Date(),
+          lastUpdated: new Date()
         }]
       };
 
@@ -369,29 +417,29 @@ describe('DataStoreService', () => {
         statements: [
           {
             id: 'stmt1',
-            debtId: '1',
+            accountId: '1',
             statementDate: new Date(),
             balance: 1000,
             minimumPayment: 50,
             dueDate: new Date(),
             interestCharged: 15,
+            transactions: [],
             payments: [],
-            purchases: [],
-            fileName: 'test1.csv',
-            imported: new Date()
+            importedDate: new Date(),
+            lastUpdated: new Date()
           },
           {
             id: 'stmt2',
-            debtId: '2',
+            accountId: '2',
             statementDate: new Date(),
             balance: 2000,
             minimumPayment: 100,
             dueDate: new Date(),
             interestCharged: 25,
+            transactions: [],
             payments: [],
-            purchases: [],
-            fileName: 'test2.csv',
-            imported: new Date()
+            importedDate: new Date(),
+            lastUpdated: new Date()
           }
         ]
       };
@@ -441,7 +489,7 @@ describe('DataStoreService', () => {
 
       expect(typeof exportedData).toBe('string');
       const parsed = JSON.parse(exportedData);
-      expect(parsed.debts).toHaveLength(1);
+      expect(parsed.accounts).toHaveLength(1);
     });
 
     it('should import valid JSON data', async () => {

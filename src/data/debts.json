@@ -1,50 +1,95 @@
 {
-  "debts": [
+  "version": "2.0.0",
+  "accounts": [
     {
       "id": "1",
       "name": "Store Credit Card",
       "type": "CREDIT_CARD",
-      "balance": 1247,
-      "minimumPayment": 45,
-      "interestRate": 24.99,
-      "lastUpdated": "2024-01-01T00:00:00.000Z",
-      "institution": "Store Bank"
+      "institution": "Store Bank",
+      "createdDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
     },
     {
       "id": "2",
       "name": "RBC Credit Card",
       "type": "CREDIT_CARD",
-      "balance": 4890,
-      "minimumPayment": 125,
-      "interestRate": 19.99,
-      "lastUpdated": "2024-01-01T00:00:00.000Z",
-      "institution": "RBC"
+      "institution": "RBC",
+      "createdDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
     },
     {
       "id": "3",
       "name": "TD Auto Loan",
       "type": "AUTO_LOAN",
-      "balance": 18500,
-      "minimumPayment": 320,
-      "interestRate": 6.5,
-      "lastUpdated": "2024-01-01T00:00:00.000Z",
-      "institution": "TD Bank"
+      "institution": "TD Bank",
+      "createdDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
     },
     {
       "id": "4",
       "name": "Personal Line of Credit",
       "type": "LINE_OF_CREDIT",
+      "institution": "National Bank",
+      "createdDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "balances": [
+    {
+      "id": "bal_1",
+      "accountId": "1",
+      "balance": 1247,
+      "minimumPayment": 45,
+      "interestRate": 24.99,
+      "balanceDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "bal_2",
+      "accountId": "2",
+      "balance": 4890,
+      "minimumPayment": 125,
+      "interestRate": 19.99,
+      "balanceDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "bal_3",
+      "accountId": "3",
+      "balance": 18500,
+      "minimumPayment": 320,
+      "interestRate": 6.5,
+      "balanceDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "bal_4",
+      "accountId": "4",
       "balance": 3200,
       "minimumPayment": 85,
       "interestRate": 8.25,
-      "lastUpdated": "2024-01-01T00:00:00.000Z",
-      "institution": "National Bank"
+      "balanceDate": "2024-01-01T00:00:00.000Z",
+      "lastUpdated": "2024-01-01T00:00:00.000Z"
     }
   ],
+  "documents": [],
   "statements": [],
   "settings": {
     "extraPayment": 100,
     "strategy": "SNOWBALL",
-    "currency": "CAD"
+    "currency": "CAD",
+    "dateFormat": "YYYY-MM-DD",
+    "notifications": {
+      "enabled": true,
+      "dueDateReminders": true,
+      "paymentReminders": true,
+      "reminderDays": 3
+    }
+  },
+  "metadata": {
+    "createdDate": "2024-01-01T00:00:00.000Z",
+    "lastUpdated": "2024-01-01T00:00:00.000Z",
+    "dataVersion": "2.0.0",
+    "totalMigrations": 0
   }
 }

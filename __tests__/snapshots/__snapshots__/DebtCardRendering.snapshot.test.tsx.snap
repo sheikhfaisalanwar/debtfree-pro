@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`DebtCard Rendering Snapshot Tests should handle debt without institution 1`] = `null`;
+
+exports[`DebtCard Rendering Snapshot Tests should handle snake_case type values (old format compatibility) 1`] = `null`;
+
+exports[`DebtCard Rendering Snapshot Tests should handle string type values (legacy compatibility) 1`] = `null`;
+
+exports[`DebtCard Rendering Snapshot Tests should handle unknown debt type 1`] = `null`;
+
+exports[`DebtCard Rendering Snapshot Tests should render auto loan debt correctly 1`] = `null`;
+
+exports[`DebtCard Rendering Snapshot Tests should render credit card debt correctly 1`] = `null`;
+
+exports[`DebtCard Rendering Snapshot Tests should render priority debt with focus badge 1`] = `null`;

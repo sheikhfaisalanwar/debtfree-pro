@@ -5,24 +5,33 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { Debt, DebtType } from '../types/Debt';
+import { DebtAccount, DebtAccountType } from '../types/DebtAccount';
+import { DebtBalance } from '../types/DebtBalance';
 
 interface DebtCardProps {
-  debt: Debt;
+  account: DebtAccount;
+  balance: DebtBalance;
   isPriority?: boolean;
   onPress?: () => void;
 }
 
-export const DebtCard: React.FC<DebtCardProps> = ({ debt, isPriority, onPress }) => {
-  const getDebtTypeIcon = (type: DebtType): string => {
+export const DebtCard: React.FC<DebtCardProps> = ({ account, balance, isPriority, onPress }) => {
+  const getDebtTypeIcon = (type: DebtAccountType): string => {
     switch (type) {
-      case DebtType.CREDIT_CARD: return '💳';
-      case DebtType.AUTO_LOAN: return '🚗';
-      case DebtType.PERSONAL_LOAN: return '💰';
-      case DebtType.LINE_OF_CREDIT: return '📈';
-      case DebtType.STUDENT_LOAN: return '🎓';
-      case DebtType.MORTGAGE: return '🏠';
-      default: return '📄';
+      case DebtAccountType.CREDIT_CARD:
+        return '💳';
+      case DebtAccountType.AUTO_LOAN:
+        return '🚗';
+      case DebtAccountType.PERSONAL_LOAN:
+        return '💰';
+      case DebtAccountType.LINE_OF_CREDIT:
+        return '📈';
+      case DebtAccountType.STUDENT_LOAN:
+        return '🎓';
+      case DebtAccountType.MORTGAGE:
+        return '🏠';
+      default: 
+        return '📄';
     }
   };
 
@@ -40,21 +49,27 @@ export const DebtCard: React.FC<DebtCardProps> = ({ debt, isPriority, onPress })
     >
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={styles.icon}>{getDebtTypeIcon(debt.type)}</Text>
-          <Text style={styles.name}>{debt.name}</Text>
+          <Text style={styles.icon}>{getDebtTypeIcon(account.type)}</Text>
+          <Text style={styles.name}>{account.name}</Text>
           {isPriority && <View style={styles.priorityBadge}>
             <Text style={styles.priorityText}>FOCUS</Text>
           </View>}
         </View>
-        <Text style={styles.balance}>{formatCurrency(debt.balance)}</Text>
+        <Text style={styles.balance}>{formatCurrency(balance.balance)}</Text>
       </View>
       
       <View style={styles.details}>
         <Text style={styles.detailText}>
-          {debt.interestRate.toFixed(2)}% APR • Min: {formatCurrency(debt.minimumPayment)}/month
+          {balance.interestRate.toFixed(2)}% APR • Min: {formatCurrency(balance.minimumPayment)}/month
         </Text>
-        {debt.institution && (
-          <Text style={styles.institution}>{debt.institution}</Text>
+        {account.institution && (
+          <Text style={styles.institution}>{account.institution}</Text>
+        )}
+        {balance.creditLimit && (
+          <Text style={styles.creditInfo}>
+            Credit Limit: {formatCurrency(balance.creditLimit)}
+            {balance.availableCredit && ` • Available: ${formatCurrency(balance.availableCredit)}`}
+          </Text>
         )}
       </View>
     </TouchableOpacity>
@@ -125,6 +140,11 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   institution: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  creditInfo: {
     fontSize: 12,
     color: '#9ca3af',
     marginTop: 2,

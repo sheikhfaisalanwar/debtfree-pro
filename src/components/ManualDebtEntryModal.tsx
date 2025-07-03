@@ -11,13 +11,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Debt, DebtType } from '../types/Debt';
+import { DebtAccountType, CreateDebtAccountParams } from '../types/DebtAccount';
+import { CreateDebtBalanceParams } from '../types/DebtBalance';
 import { DataStoreService } from '../services/DataStoreService';
 
 interface ManualDebtEntryModalProps {
   visible: boolean;
   onClose: () => void;
-  onDebtCreated: (debt: Debt) => void;
+  onDebtCreated: () => void;
   fileName?: string;
 }
 
@@ -28,7 +29,7 @@ export const ManualDebtEntryModal: React.FC<ManualDebtEntryModalProps> = ({
   fileName,
 }) => {
   const [name, setName] = useState('');
-  const [type, setType] = useState<DebtType>(DebtType.CREDIT_CARD);
+  const [type, setType] = useState<DebtAccountType>(DebtAccountType.CREDIT_CARD);
   const [balance, setBalance] = useState('');
   const [minimumPayment, setMinimumPayment] = useState('');
   const [interestRate, setInterestRate] = useState('');
@@ -39,7 +40,7 @@ export const ManualDebtEntryModal: React.FC<ManualDebtEntryModalProps> = ({
 
   const resetForm = () => {
     setName('');
-    setType(DebtType.CREDIT_CARD);
+    setType(DebtAccountType.CREDIT_CARD);
     setBalance('');
     setMinimumPayment('');
     setInterestRate('');
@@ -82,26 +83,34 @@ export const ManualDebtEntryModal: React.FC<ManualDebtEntryModalProps> = ({
     try {
       setLoading(true);
 
-      const debt: Debt = {
-        id: `debt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Create account first
+      const accountParams: CreateDebtAccountParams = {
         name: name.trim(),
         type,
-        balance: parseFloat(balance),
-        minimumPayment: parseFloat(minimumPayment),
-        interestRate: parseFloat(interestRate),
-        lastUpdated: new Date(),
-        institution: institution.trim() || undefined,
+        institution: institution.trim() || 'Unknown',
         accountNumber: accountNumber.trim() || undefined,
         dueDate: dueDate ? parseInt(dueDate) : undefined,
       };
 
-      await DataStoreService.addDebt(debt);
-      onDebtCreated(debt);
+      const account = await DataStoreService.createAccount(accountParams);
+
+      // Create initial balance
+      const balanceParams: CreateDebtBalanceParams = {
+        accountId: account.id,
+        balance: parseFloat(balance),
+        minimumPayment: parseFloat(minimumPayment),
+        interestRate: parseFloat(interestRate),
+        balanceDate: new Date(),
+      };
+
+      await DataStoreService.createBalance(balanceParams);
+
+      onDebtCreated();
       handleClose();
 
       Alert.alert(
         'Debt Added Successfully',
-        `"${debt.name}" has been added to your debt portfolio. You can now upload statements to track its progress.`,
+        `"${account.name}" has been added to your debt portfolio. You can now upload statements to track its progress.`,
         [{ text: 'OK', style: 'default' }]
       );
     } catch (error) {
@@ -116,13 +125,13 @@ export const ManualDebtEntryModal: React.FC<ManualDebtEntryModalProps> = ({
   };
 
   const debtTypes = [
-    { value: DebtType.CREDIT_CARD, label: 'Credit Card' },
-    { value: DebtType.LINE_OF_CREDIT, label: 'Line of Credit' },
-    { value: DebtType.AUTO_LOAN, label: 'Auto Loan' },
-    { value: DebtType.PERSONAL_LOAN, label: 'Personal Loan' },
-    { value: DebtType.STUDENT_LOAN, label: 'Student Loan' },
-    { value: DebtType.MORTGAGE, label: 'Mortgage' },
-    { value: DebtType.OTHER, label: 'Other' },
+    { value: DebtAccountType.CREDIT_CARD, label: 'Credit Card' },
+    { value: DebtAccountType.LINE_OF_CREDIT, label: 'Line of Credit' },
+    { value: DebtAccountType.AUTO_LOAN, label: 'Auto Loan' },
+    { value: DebtAccountType.PERSONAL_LOAN, label: 'Personal Loan' },
+    { value: DebtAccountType.STUDENT_LOAN, label: 'Student Loan' },
+    { value: DebtAccountType.MORTGAGE, label: 'Mortgage' },
+    { value: DebtAccountType.OTHER, label: 'Other' },
   ];
 
   return (

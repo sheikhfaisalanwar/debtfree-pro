@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,72 +6,91 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { DebtCard } from '../components/DebtCard';
-import { ProgressBar } from '../components/ProgressBar';
-import { StatCard } from '../components/StatCard';
 import { DocumentUpload } from '../components/DocumentUpload';
 import { EditDebtModal } from '../components/EditDebtModal';
-import { Debt } from '../types/Debt';
+import { ProgressSection } from '../components/ProgressSection';
+import { DebtsSection } from '../components/DebtsSection';
+import { NextStepsSection } from '../components/NextStepsSection';
 import { PayoffStrategy } from '../types/Strategy';
 import { DebtService } from '../services/DebtService';
 import { DataStoreService } from '../services/DataStoreService';
+import { DebtAccount } from '../types/DebtAccount';
+import { DebtBalance, DebtAccountBalance } from '../types/DebtBalance';
+import { AppSettings } from '../types/DataStore';
 
 export const Dashboard: React.FC = () => {
-  const [debts, setDebts] = useState<Debt[]>([]);
+  const [accountsWithBalances, setAccountsWithBalances] = useState<DebtAccountBalance[]>([]);
   const [strategy, setStrategy] = useState<PayoffStrategy | null>(null);
-  const [extraPayment, setExtraPayment] = useState<number>(100);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [selectedAccountBalance, setSelectedAccountBalance] = useState<DebtAccountBalance | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const loadedDebts = await DataStoreService.getDebts();
-      const settings = await DataStoreService.getSettings();
+      const loadedAccountsWithBalances = await DataStoreService.getAllAccountsWithBalances();
+      const loadedSettings = await DataStoreService.getSettings();
       
-      setExtraPayment(settings.extraPayment);
+      setSettings(loadedSettings);
       
-      if (loadedDebts.length > 0) {
-        // Sort debts by balance (ascending) for snowball method
-        const sortedDebts = [...loadedDebts].sort((a, b) => a.balance - b.balance);
-        setDebts(sortedDebts);
+      if (loadedAccountsWithBalances.length > 0) {
+        // Sort by balance (ascending) for snowball method
+        const sortedAccountsWithBalances = [...loadedAccountsWithBalances]
+          .sort((a, b) => a.balance.balance - b.balance.balance);
+        setAccountsWithBalances(sortedAccountsWithBalances);
         
-        const snowballStrategy = DebtService.calculateSnowballStrategy(sortedDebts, settings.extraPayment);
+        // Convert to legacy format for strategy calculation
+        const legacyDebts = sortedAccountsWithBalances.map(({ account, balance }) => ({
+          id: account.id,
+          name: account.name,
+          type: account.type,
+          balance: balance.balance,
+          minimumPayment: balance.minimumPayment,
+          interestRate: balance.interestRate,
+          lastUpdated: balance.lastUpdated,
+          institution: account.institution,
+          accountNumber: account.accountNumber,
+          dueDate: account.dueDate
+        }));
+        
+        const snowballStrategy = DebtService.calculateSnowballStrategy(legacyDebts, loadedSettings.extraPayment);
         setStrategy(snowballStrategy);
       } else {
-        setDebts(loadedDebts);
+        setAccountsWithBalances([]);
+        setStrategy(null);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleUploadSuccess = () => {
-    loadData();
-  };
 
-  const handleDebtCardPress = (debt: Debt) => {
-    setSelectedDebt(debt);
+  const handleDebtCardPress = useCallback((accountBalance: DebtAccountBalance) => {
+    setSelectedAccountBalance(accountBalance);
     setShowEditModal(true);
-  };
+  }, []);
 
-  const handleDebtUpdated = async () => {
+  const handleDebtUpdated = useCallback(async () => {
     await loadData();
     setShowEditModal(false);
-    setSelectedDebt(null);
-  };
+    setSelectedAccountBalance(null);
+  }, [loadData]);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setShowEditModal(false);
-    setSelectedDebt(null);
-  };
+    setSelectedAccountBalance(null);
+  }, []);
+
+  const handleUploadSuccess = useCallback(() => {
+    loadData();
+  }, [loadData]);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-CA', {
@@ -80,8 +99,12 @@ export const Dashboard: React.FC = () => {
     }).format(amount);
   };
 
-  const totalDebt = debts.reduce((sum, debt) => sum + debt.balance, 0);
-  const totalMinPayments = debts.reduce((sum, debt) => sum + debt.minimumPayment, 0);
+  // Calculate dynamic metrics
+  const totalDebt = accountsWithBalances.reduce((sum, { balance }) => sum + balance.balance, 0);
+  const totalMinPayments = accountsWithBalances.reduce((sum, { balance }) => sum + balance.minimumPayment, 0);
+  const progress = DebtService.calculateProgress(accountsWithBalances, strategy);
+  const debtFreeDate = DebtService.calculateDebtFreeDate(strategy);
+  const interestSavings = DebtService.formatInterestSavings(strategy);
 
   if (loading) {
     return (
@@ -103,86 +126,51 @@ export const Dashboard: React.FC = () => {
         </View>
 
         {/* Progress Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>🎯 Your Progress</Text>
-          <ProgressBar progress={23} label="Overall Progress" />
-          
-          <View style={styles.statsRow}>
-            <StatCard
-              value={formatCurrency(totalDebt)}
-              label="Total Debt"
-              icon="💰"
-            />
-            <StatCard
-              value={formatCurrency(totalMinPayments)}
-              label="Monthly Payments"
-              icon="📅"
-            />
-          </View>
-          
-          <View style={styles.statsRow}>
-            <StatCard
-              value="3.2 years"
-              label="Debt-Free Date"
-              icon="🎯"
-            />
-            <StatCard
-              value="$3,420"
-              label="Interest Saved"
-              icon="💾"
-            />
-          </View>
-        </View>
+        <ProgressSection
+          progress={progress}
+          totalDebt={totalDebt}
+          totalMinPayments={totalMinPayments}
+          debtFreeDate={debtFreeDate}
+          interestSavings={interestSavings}
+          formatCurrency={formatCurrency}
+        />
 
-        {/* Document Upload Section */}
-        <DocumentUpload onUploadSuccess={handleUploadSuccess} />
+        {/* Add Debt Action Button */}
+        <DocumentUpload onSuccess={handleUploadSuccess} />
 
         {/* Debts Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>💳 Your Debts</Text>
-          {debts.map((debt, index) => (
-            <DebtCard
-              key={debt.id}
-              debt={debt}
-              isPriority={index === 0} // First debt in snowball method
-              onPress={() => handleDebtCardPress(debt)}
-            />
-          ))}
-        </View>
+        <DebtsSection
+          accountsWithBalances={accountsWithBalances}
+          onDebtPress={handleDebtCardPress}
+        />
 
         {/* Next Steps */}
-        {strategy && (
-          <View style={[styles.card, styles.nextStepsCard]}>
-            <Text style={styles.nextStepsTitle}>🚀 Next Steps</Text>
-            <View style={styles.stepsList}>
-              {strategy.debts.length > 0 && (
-                <>
-                  <Text style={styles.stepText}>
-                    1. <Text style={styles.stepBold}>Pay {formatCurrency(strategy.debts[0].monthlyPayment)} toward {debts.find(d => d.id === strategy.debts[0].debtId)?.name}</Text> 
-                    {` (minimum ${formatCurrency(debts.find(d => d.id === strategy.debts[0].debtId)?.minimumPayment || 0)} + extra ${formatCurrency(extraPayment)})`}
-                  </Text>
-                  <Text style={styles.stepText}>
-                    2. Pay minimums on all other debts ({formatCurrency(totalMinPayments - (debts.find(d => d.id === strategy.debts[0].debtId)?.minimumPayment || 0))} total)
-                  </Text>
-                  <Text style={styles.stepText}>
-                    3. Expected payoff: {debts.find(d => d.id === strategy.debts[0].debtId)?.name} by {strategy.debts[0].payoffDate.toLocaleDateString()}
-                  </Text>
-                  {strategy.debts.length > 1 && (
-                    <Text style={styles.stepText}>
-                      4. After payoff, apply that payment to {debts.find(d => d.id === strategy.debts[1].debtId)?.name}
-                    </Text>
-                  )}
-                </>
-              )}
-            </View>
-          </View>
+        {strategy && settings && (
+          <NextStepsSection
+            strategy={strategy}
+            settings={settings}
+            accountsWithBalances={accountsWithBalances}
+            totalMinPayments={totalMinPayments}
+            formatCurrency={formatCurrency}
+          />
         )}
       </ScrollView>
       
-      {selectedDebt && (
+      {selectedAccountBalance && (
         <EditDebtModal
           visible={showEditModal}
-          debt={selectedDebt}
+          debt={{
+            id: selectedAccountBalance.account.id,
+            name: selectedAccountBalance.account.name,
+            type: selectedAccountBalance.account.type,
+            balance: selectedAccountBalance.balance.balance,
+            minimumPayment: selectedAccountBalance.balance.minimumPayment,
+            interestRate: selectedAccountBalance.balance.interestRate,
+            lastUpdated: selectedAccountBalance.balance.lastUpdated,
+            institution: selectedAccountBalance.account.institution,
+            accountNumber: selectedAccountBalance.account.accountNumber,
+            dueDate: selectedAccountBalance.account.dueDate
+          }}
           onSave={handleDebtUpdated}
           onCancel={handleModalClose}
         />
@@ -215,52 +203,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#6b7280',
-  },
-  card: {
-    backgroundColor: 'white',
-    margin: 16,
-    marginTop: 0,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    marginHorizontal: -4,
-  },
-  nextStepsCard: {
-    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
-  },
-  nextStepsTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#047857',
-    marginBottom: 16,
-  },
-  stepsList: {
-    marginLeft: 8,
-  },
-  stepText: {
-    fontSize: 14,
-    color: '#065f46',
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  stepBold: {
-    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

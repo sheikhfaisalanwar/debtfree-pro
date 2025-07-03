@@ -6,36 +6,31 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { StatementProcessingService } from '../services/StatementProcessingService';
 import { DocumentManagerService } from '../services/DocumentManagerService';
 import { ManualDebtEntryModal } from './ManualDebtEntryModal';
-import { Debt } from '../types/Debt';
 
 interface DocumentUploadProps {
-  debtId?: string;
-  onUploadSuccess?: () => void;
-  onUploadError?: (error: string) => void;
+  onSuccess?: () => void;
 }
 
-export const DocumentUpload: React.FC<DocumentUploadProps> = ({
-  debtId,
-  onUploadSuccess,
-  onUploadError,
-}) => {
+export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onSuccess }) => {
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showManualEntryModal, setShowManualEntryModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [lastUploadResult, setLastUploadResult] = useState<string | null>(null);
-  const [showManualEntryModal, setShowManualEntryModal] = useState(false);
   const [pendingStatement, setPendingStatement] = useState<any>(null);
-  const [createdDebtId, setCreatedDebtId] = useState<string | null>(null);
 
   const handleDocumentUpload = async () => {
     try {
       setUploading(true);
       setLastUploadResult(null);
+      setShowActionModal(false);
 
-      // First, upload and process the document to see what data we get
-      const uploadResult = await DocumentManagerService.uploadAndProcessDocument(debtId);
+      // Upload and process the document
+      const uploadResult = await DocumentManagerService.uploadAndProcessDocument();
       
       if (!uploadResult.success || !uploadResult.statement) {
         throw new Error(uploadResult.error || 'Upload failed');
@@ -44,34 +39,19 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       // Check if meaningful data was extracted from the PDF
       const hasExtractedData = (uploadResult.statement as any).hasExtractedData;
       
-      if (hasExtractedData && debtId) {
-        // PDF data was extracted and we have a debtId - proceed with automatic processing
-        const result = await StatementProcessingService.processUploadedStatement(debtId);
-
-        if (result.updated && result.statement && result.analysis) {
-          const analysisText = StatementProcessingService.formatAnalysisSummary(result.analysis);
-          setLastUploadResult(`✅ Upload successful! ${analysisText}`);
-          
-          Alert.alert(
-            'Upload Successful! 🎉',
-            `Statement processed successfully.\n\n${analysisText}`,
-            [{ text: 'OK', style: 'default' }]
-          );
-          
-          onUploadSuccess?.();
-        } else if (result.statement) {
-          const validationSummary = result.statement.fileName 
-            ? `Statement "${result.statement.fileName}" uploaded successfully`
-            : 'Statement uploaded successfully';
-          
-          setLastUploadResult(`✅ ${validationSummary}`);
-          Alert.alert('Upload Complete', validationSummary);
-          onUploadSuccess?.();
-        } else {
-          throw new Error(result.error || 'Processing failed');
-        }
+      if (hasExtractedData) {
+        // PDF data was extracted - show success
+        setLastUploadResult(`✅ Document uploaded and processed successfully!`);
+        
+        Alert.alert(
+          'Upload Successful! 🎉',
+          'Statement processed and debt information updated successfully.',
+          [{ text: 'OK', style: 'default' }]
+        );
+        
+        onSuccess?.();
       } else {
-        // No meaningful data extracted or no debtId - show manual entry modal
+        // No meaningful data extracted - show manual entry modal
         setPendingStatement(uploadResult.statement);
         setShowManualEntryModal(true);
         setLastUploadResult(`📄 Document uploaded. Please enter debt details manually.`);
@@ -85,192 +65,227 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
         errorMessage,
         [{ text: 'OK', style: 'default' }]
       );
-      
-      onUploadError?.(errorMessage);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDebtCreated = async (debt: Debt) => {
-    try {
-      // Store the created debt ID in temporary state
-      setCreatedDebtId(debt.id);
-      
-      if (pendingStatement) {
-        // Process the existing statement with the newly created debt ID
-        const result = await StatementProcessingService.processExistingStatement(pendingStatement.id, debt.id);
-        
-        if (result.statement) {
-          setLastUploadResult(`✅ Debt created and statement linked successfully! (Debt ID: ${debt.id})`);
-          Alert.alert(
-            'Success! 🎉',
-            `Debt "${debt.name}" has been created with ID ${debt.id} and your statement has been linked to it.`,
-            [{ text: 'OK', style: 'default' }]
-          );
-          onUploadSuccess?.();
-        } else {
-          throw new Error(result.error || 'Failed to process statement');
-        }
-      }
-    } catch (error) {
-      Alert.alert(
-        'Error',
-        `Failed to link statement to debt: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        [{ text: 'OK', style: 'default' }]
-      );
-    } finally {
-      // Clear temporary states
-      setPendingStatement(null);
-      setCreatedDebtId(null);
-    }
+  const handleDebtCreated = () => {
+    setPendingStatement(null);
+    setShowManualEntryModal(false);
+    onSuccess?.();
   };
 
-  const handleModalClose = () => {
+  const handleManualEntryModalClose = () => {
     setShowManualEntryModal(false);
     setPendingStatement(null);
-    setCreatedDebtId(null);
+  };
+
+  const handleManualEntryOnly = () => {
+    setShowActionModal(false);
+    setShowManualEntryModal(true);
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>📄 Upload Statement</Text>
-        <Text style={styles.subtitle}>
-          Upload CSV or PDF statements to automatically update your debt information
-        </Text>
-      </View>
-
+    <>
       <TouchableOpacity
-        style={[styles.uploadButton, uploading && styles.uploadButtonDisabled]}
-        onPress={handleDocumentUpload}
-        disabled={uploading}
+        style={styles.actionButton}
+        onPress={() => setShowActionModal(true)}
         activeOpacity={0.7}
       >
-        {uploading ? (
-          <View style={styles.uploadingContent}>
-            <ActivityIndicator size="small" color="#ffffff" />
-            <Text style={styles.uploadButtonText}>Processing...</Text>
-          </View>
-        ) : (
-          <View style={styles.uploadContent}>
-            <Text style={styles.uploadIcon}>📎</Text>
-            <Text style={styles.uploadButtonText}>Choose Document</Text>
-            <Text style={styles.uploadHint}>CSV or PDF</Text>
-          </View>
-        )}
+        <Text style={styles.actionButtonIcon}>➕</Text>
+        <Text style={styles.actionButtonText}>Add Debt</Text>
       </TouchableOpacity>
 
+      {/* Action Selection Modal */}
+      <Modal
+        visible={showActionModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowActionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.actionModalContainer}>
+            <Text style={styles.actionModalTitle}>Add New Debt</Text>
+            <Text style={styles.actionModalSubtitle}>
+              Choose how you'd like to add your debt information
+            </Text>
+
+            <TouchableOpacity
+              style={[styles.optionButton, uploading && styles.optionButtonDisabled]}
+              onPress={handleDocumentUpload}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <View style={styles.optionContent}>
+                  <ActivityIndicator size="small" color="#3b82f6" />
+                  <View style={styles.optionTextContainer}>
+                    <Text style={styles.optionTitle}>Processing...</Text>
+                    <Text style={styles.optionDescription}>Please wait</Text>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.optionContent}>
+                  <Text style={styles.optionIcon}>📄</Text>
+                  <View style={styles.optionTextContainer}>
+                    <Text style={styles.optionTitle}>Upload Statement</Text>
+                    <Text style={styles.optionDescription}>
+                      Upload a PDF or CSV statement to auto-extract debt info
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.optionButton}
+              onPress={handleManualEntryOnly}
+            >
+              <View style={styles.optionContent}>
+                <Text style={styles.optionIcon}>✏️</Text>
+                <View style={styles.optionTextContainer}>
+                  <Text style={styles.optionTitle}>Manual Entry</Text>
+                  <Text style={styles.optionDescription}>
+                    Enter debt information manually
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowActionModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Manual Entry Modal */}
+      <ManualDebtEntryModal
+        visible={showManualEntryModal}
+        onClose={handleManualEntryModalClose}
+        onDebtCreated={handleDebtCreated}
+        fileName={pendingStatement?.fileName}
+      />
+
+      {/* Result Display */}
       {lastUploadResult && (
         <View style={styles.resultContainer}>
           <Text style={styles.resultText}>{lastUploadResult}</Text>
         </View>
       )}
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoTitle}>📋 Supported Formats:</Text>
-        <Text style={styles.infoText}>• CSV files with transaction data</Text>
-        <Text style={styles.infoText}>• PDF bank and credit card statements</Text>
-        <Text style={styles.infoText}>• Maximum file size: 10MB</Text>
-      </View>
-
-      <ManualDebtEntryModal
-        visible={showManualEntryModal}
-        onClose={handleModalClose}
-        onDebtCreated={handleDebtCreated}
-        fileName={pendingStatement?.fileName}
-      />
-    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
+  actionButton: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginHorizontal: 16,
     marginVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  header: {
-    marginBottom: 20,
-  },
-  title: {
+  actionButtonIcon: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
+    marginRight: 8,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    lineHeight: 20,
-  },
-  uploadButton: {
-    backgroundColor: '#3b82f6',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    minHeight: 80,
-  },
-  uploadButtonDisabled: {
-    backgroundColor: '#9ca3af',
-  },
-  uploadContent: {
-    alignItems: 'center',
-  },
-  uploadingContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  uploadIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  uploadButtonText: {
+  actionButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
-  uploadHint: {
-    color: '#bfdbfe',
-    fontSize: 12,
-    marginTop: 4,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  actionModalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  actionModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  actionModalSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  optionButton: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: 'white',
+  },
+  optionButtonDisabled: {
+    opacity: 0.6,
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionIcon: {
+    fontSize: 24,
+    marginRight: 16,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  optionDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 18,
+  },
+  cancelButton: {
+    marginTop: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#6b7280',
+    fontWeight: '500',
   },
   resultContainer: {
     backgroundColor: '#f3f4f6',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
   },
   resultText: {
     fontSize: 14,
     color: '#374151',
     textAlign: 'center',
-  },
-  infoContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingTop: 16,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 4,
-    lineHeight: 16,
   },
 });

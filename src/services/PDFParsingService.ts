@@ -131,14 +131,16 @@ export class PDFParsingService {
 
     // Extract Statement Date
     statementData.statementDate = this.extractDate(normalizedText, [
-      /STATEMENT\s+DATE[:\s]+(\d{1,2}\/\d{1,2}\/\d{2,4})/,
-      /CLOSING\s+DATE[:\s]+(\d{1,2}\/\d{1,2}\/\d{2,4})/
+      /STATEMENT\s+DATE[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/,
+      /CLOSING\s+DATE[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/,
+      /CYCLE\s+ENDING[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/
     ]);
 
     // Extract Due Date
     statementData.dueDate = this.extractDate(normalizedText, [
-      /DUE\s+DATE[:\s]+(\d{1,2}\/\d{1,2}\/\d{2,4})/,
-      /PAYMENT\s+DUE\s+DATE[:\s]+(\d{1,2}\/\d{1,2}\/\d{2,4})/
+      /DUE\s+DATE[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/,
+      /PAYMENT\s+DUE\s+DATE[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/,
+      /PAYMENT\s+DUE[:\s]+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/
     ]);
 
     return statementData;
@@ -178,15 +180,24 @@ export class PDFParsingService {
   }
 
   /**
-   * Extract date using regex patterns
+   * Extract date using regex patterns with improved parsing
    */
   private static extractDate(text: string, patterns: RegExp[]): Date | undefined {
     for (const pattern of patterns) {
       const match = text.match(pattern);
       if (match && match[1]) {
         try {
-          const date = new Date(match[1]);
-          if (!isNaN(date.getTime())) {
+          // Normalize date string to handle different formats
+          let dateString = match[1].trim();
+          
+          // Convert MM-DD-YYYY to MM/DD/YYYY
+          dateString = dateString.replace(/-/g, '/');
+          
+          // Parse the date
+          const date = new Date(dateString);
+          
+          // Validate the date is actually valid and reasonable
+          if (!isNaN(date.getTime()) && this.isReasonableDate(date)) {
             return date;
           }
         } catch {
@@ -195,6 +206,18 @@ export class PDFParsingService {
       }
     }
     return undefined;
+  }
+
+  /**
+   * Validate that a date is reasonable for a financial statement
+   */
+  private static isReasonableDate(date: Date): boolean {
+    const now = new Date();
+    const fiveYearsAgo = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate());
+    const oneYearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+    
+    // Date should be within a reasonable range for financial statements
+    return date >= fiveYearsAgo && date <= oneYearFromNow;
   }
 
   /**

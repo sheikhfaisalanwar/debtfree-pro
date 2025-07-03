@@ -1,0 +1,126 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Date Parsing Snapshot Tests DataStoreService Date Serialization should handle invalid date strings gracefully 1`] = `
+{
+  "accountCreatedDateValid": false,
+  "accountLastUpdatedValid": false,
+  "balanceDateValid": false,
+  "balanceLastUpdatedValid": false,
+  "metadataCreatedDateValid": false,
+  "metadataLastUpdatedValid": false,
+}
+`;
+
+exports[`Date Parsing Snapshot Tests DataStoreService Date Serialization should parse dates correctly from JSON 1`] = `
+{
+  "accountCreatedDateType": "object",
+  "accountCreatedDateValid": true,
+  "balanceDateType": "object",
+  "balanceDateValid": true,
+  "documentUploadDateType": "object",
+  "documentUploadDateValid": true,
+  "metadataCreatedDateType": "object",
+  "metadataCreatedDateValid": true,
+  "paymentDateType": "object",
+  "paymentDateValid": true,
+  "statementDateType": "object",
+  "statementDateValid": true,
+  "transactionDateType": "object",
+  "transactionDateValid": true,
+}
+`;
+
+exports[`Date Parsing Snapshot Tests DataStoreService Date Serialization should serialize dates correctly to JSON 1`] = `
+{
+  "accountCreatedDate": "2024-01-15T10:30:00.000Z",
+  "balanceDate": "2024-01-15T10:30:00.000Z",
+  "documentUploadDate": "2024-01-15T10:30:00.000Z",
+  "metadataCreatedDate": "2024-01-15T10:30:00.000Z",
+  "paymentDate": "2024-01-15T10:30:00.000Z",
+  "serializedType": "object",
+  "statementDate": "2024-01-15T10:30:00.000Z",
+  "transactionDate": "2024-01-15T10:30:00.000Z",
+}
+`;
+
+exports[`Date Parsing Snapshot Tests PDFParsingService Date Extraction should handle invalid date formats gracefully 1`] = `
+[
+  {
+    "dueDate": undefined,
+    "hasValidDueDate": false,
+    "hasValidStatementDate": false,
+    "input": "STATEMENT DATE: 13/45/2024",
+    "statementDate": undefined,
+  },
+  {
+    "dueDate": 2024-03-01T05:00:00.000Z,
+    "hasValidDueDate": true,
+    "hasValidStatementDate": false,
+    "input": "DUE DATE: 02/30/2024",
+    "statementDate": undefined,
+  },
+  {
+    "dueDate": undefined,
+    "hasValidDueDate": false,
+    "hasValidStatementDate": false,
+    "input": "STATEMENT DATE: invalid",
+    "statementDate": undefined,
+  },
+  {
+    "dueDate": undefined,
+    "hasValidDueDate": false,
+    "hasValidStatementDate": false,
+    "input": "DUE DATE: 00/00/0000",
+    "statementDate": undefined,
+  },
+]
+`;
+
+exports[`Date Parsing Snapshot Tests PDFParsingService Date Extraction should handle various date formats 1`] = `
+[
+  {
+    "dueDate": undefined,
+    "dueDateValid": false,
+    "input": "STATEMENT DATE: 01/15/2024",
+    "statementDate": "2024-01-15T05:00:00.000Z",
+    "statementDateValid": true,
+  },
+  {
+    "dueDate": undefined,
+    "dueDateValid": false,
+    "input": "STATEMENT DATE: 1/15/24",
+    "statementDate": "2024-01-15T05:00:00.000Z",
+    "statementDateValid": true,
+  },
+  {
+    "dueDate": undefined,
+    "dueDateValid": false,
+    "input": "STATEMENT DATE: 01-15-2024",
+    "statementDate": "2024-01-15T05:00:00.000Z",
+    "statementDateValid": true,
+  },
+  {
+    "dueDate": "2024-12-31T05:00:00.000Z",
+    "dueDateValid": true,
+    "input": "DUE DATE: 12/31/2024",
+    "statementDate": undefined,
+    "statementDateValid": false,
+  },
+  {
+    "dueDate": "2024-02-28T05:00:00.000Z",
+    "dueDateValid": true,
+    "input": "DUE DATE: 2/28/24",
+    "statementDate": undefined,
+    "statementDateValid": false,
+  },
+]
+`;
+
+exports[`Date Parsing Snapshot Tests PDFParsingService Date Extraction should parse dates correctly from statement text 1`] = `
+{
+  "dueDate": "2024-02-15T05:00:00.000Z",
+  "dueDateValid": true,
+  "statementDate": "2024-01-15T05:00:00.000Z",
+  "statementDateValid": true,
+}
+`;
